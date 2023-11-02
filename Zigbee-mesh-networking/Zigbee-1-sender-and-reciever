@@ -1,0 +1,31 @@
+#include <SoftwareSerial.h>
+
+int led = 2;
+int i;
+char received[10];
+
+SoftwareSerial XBee(2,3);
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Check zigbee in void");
+  XBee.begin(9600);
+}
+
+void loop() {
+  //Serial.println(XBee.available());
+  if (XBee.available() > 0) {
+    char received = XBee.read();
+    Serial.println("available");
+    Serial.println(received);
+    //XBee.print(received);
+    //XBee.write('3');
+    XBee.write('3');
+    }
+  else{
+    Serial.println("not available");
+    //XBee.print("I am a dumb zigbee");
+    }
+  delay(1000);
+}
+
