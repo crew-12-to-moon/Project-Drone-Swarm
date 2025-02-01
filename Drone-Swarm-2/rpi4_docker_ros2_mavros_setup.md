@@ -1,10 +1,9 @@
-```markdown
-Docker-based ROS 2 Humble & MAVROS Setup Guide
+Docker-based ROS 2 Humble & MAVROS Setup Guide 
 ===============================================
+### Mavros version: 
+Below are the steps to install Docker, run a ROS 2 Humble container, check ROS 2 functionality, install MAVROS inside the container, and finally save your Docker container progress.
 
-Paragraphs are separated by a blank line. Below are the steps to install Docker, run a ROS 2 Humble container, check ROS 2 functionality, install MAVROS inside the container, and finally save your Docker container progress.
-
-1. Install Docker
+## 1. Install Docker
 -----------------
 
 ### Update the system
@@ -35,7 +34,7 @@ sudo docker run hello-world
 
 If Docker is installed correctly, you should see a message confirming its successful execution.
 
-2. Pull and Run ROS 2 Humble in Docker
+## 2. Pull and Run ROS 2 Humble in Docker
 ---------------------------------------
 
 ### Pull the ROS 2 Humble base image
@@ -52,7 +51,7 @@ sudo docker run -it ros:humble-ros-core
 
 This starts a new container with ROS 2 Humble.
 
-3. Check if ROS 2 Humble is Working
+## 3. Check if ROS 2 Humble is Working
 ------------------------------------
 
 ### Publish a test message on a ROS 2 topic
@@ -69,7 +68,7 @@ ros2 topic echo /example_topic
 
 If ROS 2 is working correctly, you should see "Hello ROS 2" being printed.
 
-4. Install MAVROS inside Docker
+## 4. Install MAVROS inside Docker
 -------------------------------
 
 ### Update package list
@@ -100,7 +99,7 @@ ros2 pkg list | grep mavros
 
 If installed successfully, `mavros` should appear in the list.
 
-5. Save Docker Container Progress
+## 5. Save Docker Container Progress
 ----------------------------------
 
 ### Exit the running container
