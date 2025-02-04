@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 from geometry_msgs.msg import TwistStamped, PoseStamped
-from mavros_msgs.srv import CommandTOL
+from mavros_msgs.srv import CommandTOL, CommandBool  # Added CommandBool import for disarming
 from mavros_msgs.msg import State
 import time
 
@@ -13,6 +13,8 @@ class DroneController(Node):
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
 
         self.takeoff_client = self.create_client(CommandTOL, '/mavros/cmd/takeoff')
+        self.disarm_client = self.create_client(CommandBool, '/mavros/cmd/arming')  # Disarm client
+
         self.velocity_publisher = self.create_publisher(TwistStamped, '/mavros/setpoint_velocity/cmd_vel', qos_profile)
         self.state_subscriber = self.create_subscription(State, '/mavros/state', self.state_callback, qos_profile)
         self.altitude_subscriber = self.create_subscription(PoseStamped, '/mavros/local_position/pose', self.altitude_callback, qos_profile)
@@ -23,6 +25,8 @@ class DroneController(Node):
 
         while not self.takeoff_client.wait_for_service(timeout_sec=2.0):
             self.get_logger().info('Waiting for takeoff service...')
+        while not self.disarm_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('Waiting for disarm service...')
 
     def state_callback(self, msg):
         self.armed = msg.armed
@@ -50,6 +54,19 @@ class DroneController(Node):
         msg.twist.linear.z = z_velocity
         self.velocity_publisher.publish(msg)
 
+    def disarm(self):
+        req = CommandBool.Request()
+        req.value = False  # Setting False to disarm
+        future = self.disarm_client.call_async(req)
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result().success:
+            self.get_logger().info("Drone disarmed successfully")
+            return True
+        else:
+            self.get_logger().info("Drone disarm failed")
+            return False
+
     def execute_mission(self):
         if self.takeoff(1.0):
             time.sleep(5)  # Wait for stabilization
@@ -72,6 +89,9 @@ class DroneController(Node):
 
             self.publish_velocity(0.0)
             self.get_logger().info("Mission complete!")
+            # After mission completion, disarm the drone
+            self.disarm()
+
 
 def main(args=None):
     rclpy.init(args=args)
