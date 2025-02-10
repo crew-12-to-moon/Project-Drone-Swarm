@@ -172,3 +172,28 @@ ros2 launch mavros apm.launch fcu_url:=udp://127.0.0.1:14560@14557 namespace:=/d
 ```
 Note: Verify that the port numbers (14550@14555 and 14560@14557) are consistent with the logs provided by the ArduPilot SITL for each instance.
 Footer
+
+## communicate via ROS DOMAIN ID for ROS2:
+### For ROS DOMAIN ID to work across different systems, you have to enable same DDS version implemented on all the systems (here we use cyclone dds)
+
+Install Cyclone DDS on your Raspberry Pi:
+Try updating your package list and installing the Cyclone DDS package for ROS2 Humble:
+
+```bash
+sudo apt update
+sudo apt install ros-humble-rmw-cyclonedds-cpp
+```
+
+Set the Environment Variable:
+Ensure you force ROS2 to use Cyclone DDS by running:
+
+```bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```
+
+Re-source Your ROS2 Setup:
+Make sure you have sourced your ROS2 Humble setup script:
+
+```bash
+source /opt/ros/humble/setup.bash
+```
