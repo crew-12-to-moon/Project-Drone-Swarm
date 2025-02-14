@@ -56,6 +56,15 @@ apt install -y \
     ros-humble-mavros \
     ros-humble-mavros-extras
 ```
+### If GeographicLib error comes
+Run the following code to install one last dependency
+```bash
+wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+chmod +x install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh
+
+```
+
 ### Source ROS 2 setup script automatically on every new shell session
 ```bash
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && source ~/.bashrc
