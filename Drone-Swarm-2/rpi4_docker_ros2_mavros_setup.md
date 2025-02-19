@@ -155,13 +155,13 @@ ros2 topic echo /mavros/local_position/pose
 For instance 0:
 
 ```bash
-sim_vehicle.py -v ArduCopter -f quad -I 0
+sim_vehicle.py -v ArduCopter -w --console --map -f quad -I 0
 ```
 
 For instance 1:
 
 ```bash
-sim_vehicle.py -v ArduCopter -f quad -I 1
+sim_vehicle.py -v ArduCopter -w --console --map -f quad -I 1
 ```
 
 ## Launch MAVROS for Each Instance
