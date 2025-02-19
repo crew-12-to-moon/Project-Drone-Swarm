@@ -121,6 +121,7 @@ Clone the ArduPilot repository from GitHub and initialize all necessary submodul
 ```bash
 git clone https://github.com/ArduPilot/ardupilot.git
 cd ardupilot
+git checkout stable-copter-4.5.7
 git submodule update --init --recursive
 ```
 
