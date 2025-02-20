@@ -123,6 +123,8 @@ git clone https://github.com/ArduPilot/ardupilot.git
 cd ardupilot
 git checkout stable-copter-4.5.7
 git submodule update --init --recursive
+./waf configure --board sitl
+./waf build
 ```
 
 ## 3. Running the ArduCopter Simulation
@@ -133,6 +135,20 @@ Navigate to the ArduCopter directory and start the SITL simulation with console 
 cd ardupilot/ArduCopter
 sim_vehicle.py -v ArduCopter -w --console --map
 ```
+and if you get this error: "-bash: sim_vehicle.py: command not found", So to execute sim_vehicle.py from any location, add its directory to your PATH:
+
+```bash
+export PATH=$PATH:$HOME/ardupilot/Tools/autotest
+```
+After adding this line, reload your shell configuration:
+```bash
+source ~/.bashrc
+```
+and after all this, if you get this error: "/usr/bin/env: ‘python’: No such file or directory", create a symlink:
+```bash
+ln -s /usr/bin/python3 /usr/bin/python
+```
+Now run the sitl simulation!
 
 ## 4. Running MAVROS with ROS2
 
