@@ -112,6 +112,7 @@ Update your package list and install Git, Python3, and the required development 
 ```bash
 apt-get update
 apt-get install git python3 python3-dev python3-pip python3-numpy python3-matplotlib
+python3 -m pip install MAVProxy
 ```
 
 ## 2. Cloning the ArduPilot Repository
@@ -144,7 +145,7 @@ After adding this line, reload your shell configuration:
 ```bash
 source ~/.bashrc
 ```
-and after all this, if you get this error: "/usr/bin/env: ‘python’: No such file or directory", create a symlink:
+and after all this, if you still end up with this error: "/usr/bin/env: ‘python’: No such file or directory", create a symlink:
 ```bash
 ln -s /usr/bin/python3 /usr/bin/python
 ```
