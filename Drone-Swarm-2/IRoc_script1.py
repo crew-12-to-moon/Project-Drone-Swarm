@@ -1,0 +1,75 @@
+class DroneController(Node):
+    def __init__(self):
+        super().__init__('drone_controller')
+
+        self.declare_parameter('namespace', 'drone1')
+        namespace = self.get_parameter('namespace').value
+
+        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
+
+        self.takeoff_client = self.create_client(CommandTOL, f'/{namespace}/cmd/takeoff')
+        self.disarm_client = self.create_client(CommandBool, f'/{namespace}/cmd/arming')
+        self.mode_client = self.create_client(SetMode, f'/{namespace}/set_mode')
+
+        while not self.takeoff_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('Waiting for takeoff service...')
+        while not self.disarm_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('Waiting for disarm service...')
+        while not self.mode_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('Waiting for set_mode service...')
+
+        self.current_altitude = 0.0
+        self.armed = False
+        self.offboard_mode = False
+
+        self.initial_pose = None
+        self.initial_altitude = None
+
+    def state_callback(self, msg):
+        self.armed = msg.armed
+        self.offboard_mode = (msg.mode == "OFFBOARD")
+
+    def altitude_callback(self, msg):
+        self.current_altitude = msg.pose.position.z
+
+    def takeoff(self, altitude=4.0):
+        req = CommandTOL.Request()
+        req.altitude = altitude
+        future = self.takeoff_client.call_async(req)
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result().success:
+            self.get_logger().info(f"Takeoff successful to {altitude} meters")
+            return True
+        else:
+            self.get_logger().info("Takeoff failed")
+            return False
+
+    def land(self):
+        req = CommandTOL.Request()
+        req.altitude = 0.0
+        future = self.takeoff_client.call_async(req)
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result().success:
+            self.get_logger().info("Landing successful")
+            return True
+        else:
+            self.get_logger().info("Landing failed")
+            return False
+
+    def execute_mission(self):
+        if self.takeoff(4.0):
+            self.get_logger().info("Holding altitude for 30 seconds...")
+            time.sleep(30)  # Hold altitude for 30 seconds
+            self.land()
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = DroneController()
+    controller.execute_mission()
+    controller.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
