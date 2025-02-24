@@ -8,10 +8,10 @@ def generate_launch_description():
             executable='mavros_node',
             output='screen',
             parameters=[{
-                'fcu_url': 'udp://127.0.0.1:14560@14565',
+                'fcu_url': '/dev/ttyAMA0:921600', #'udp://127.0.0.1:14560@14565',
                 'gcs_url': '',
                 'target_system_id': 2,
-                'target_component_id': 1,
+                'target_component_id': 2,
                 'fcu_protocol': 'v2.0',
                 'namespace': '/drone2'
             }],
