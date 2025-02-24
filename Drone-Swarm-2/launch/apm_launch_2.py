@@ -13,7 +13,7 @@ def generate_launch_description():
                 'target_system_id': 2,
                 'target_component_id': 2,
                 'fcu_protocol': 'v2.0',
-                'namespace': '/drone2'
+                'namespace': '/mavros/drone2'
             }],
             remappings=[
                 # If you want to isolate the navigation goal topic
