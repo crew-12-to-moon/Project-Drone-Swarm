@@ -8,6 +8,7 @@ import time
 import threading
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
+import sys
 
 # Global lock to protect spin_until_future_complete calls
 spin_lock = threading.Lock()
@@ -111,6 +112,8 @@ class DroneController(Node):
             
         if self.takeoff(1.0):
             time.sleep(5)  # Wait for stabilization
+
+            ascent_offset = 2.0
 
             self.get_logger().info("Starting ascent to 2m...")
             while self.current_altitude < (self.initial_altitude + ascent_offset):
