@@ -29,6 +29,10 @@ class DroneController(Node):
         self.armed = False
         self.offboard_mode = False
 
+        # Variables to store the initial position (if not (0,0,0))
+        self.initial_pose = None  # Will hold the full Pose message
+        self.initial_altitude = None  # Initial z value
+
         while not self.takeoff_client.wait_for_service(timeout_sec=2.0):
             self.get_logger().info('Waiting for takeoff service...')
         while not self.disarm_client.wait_for_service(timeout_sec=2.0):
@@ -41,6 +45,13 @@ class DroneController(Node):
     def altitude_callback(self, msg):
         self.current_altitude = msg.pose.position.z
         self.get_logger().info(f"Altitude callback: {self.current_altitude}")
+        # If we haven't stored the initial position yet, do it now.
+        if self.initial_pose is None:
+            self.initial_pose = msg.pose
+            self.initial_altitude = msg.pose.position.z
+            self.get_logger().info(
+                f"Initial position captured: x={self.initial_pose.position.x}, "
+                f"y={self.initial_pose.position.y}, z={self.initial_altitude}")
 
     def takeoff(self, altitude=1.0):
         req = CommandTOL.Request()
@@ -60,12 +71,22 @@ class DroneController(Node):
         msg.twist.linear.z = z_velocity
         self.velocity_publisher.publish(msg)
 
-    def publish_position(self, target_altitude):
+    def publish_position(self, altitude_offset):
+        """
+        Publish a position setpoint based on the initial position.
+        The new target altitude is calculated as initial altitude + altitude_offset.
+        The x and y positions remain as the initial x and y.
+        """
         msg = PoseStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.pose.position.x = 0.0
-        msg.pose.position.y = 0.0
-        msg.pose.position.z = target_altitude
+        if self.initial_pose is None:
+            self.get_logger().error("Initial pose not received. Exiting script.")
+            rclpy.shutdown()
+            sys.exit(1)
+        else:
+            msg.pose.position.x = self.initial_pose.position.x
+            msg.pose.position.y = self.initial_pose.position.y
+            msg.pose.position.z = self.initial_altitude + altitude_offset
         self.position_publisher.publish(msg)
 
     def disarm(self):
@@ -82,11 +103,17 @@ class DroneController(Node):
             return False
 
     def execute_mission(self):
+        # Wait until we have received the initial position before starting the mission.
+        while self.initial_pose is None:
+            self.get_logger().info("Waiting for initial position data...")
+            rclpy.spin_once(self, timeout_sec=0.1)
+            time.sleep(0.1)
+            
         if self.takeoff(1.0):
             time.sleep(5)  # Wait for stabilization
 
             self.get_logger().info("Starting ascent to 2m...")
-            while self.current_altitude < 2.0:
+            while self.current_altitude < (self.initial_altitude + ascent_offset):
                 rclpy.spin_once(self, timeout_sec=0.1)
                 self.get_logger().info(f"Current altitude: {self.current_altitude}")
                 self.publish_velocity(0.2)
@@ -94,7 +121,7 @@ class DroneController(Node):
                 time.sleep(1)
 
             self.get_logger().info("Reached 2m, starting descent...")
-            while self.current_altitude > 0.2:
+            while self.current_altitude > (self.initial_altitude + 0.2):
                 rclpy.spin_once(self, timeout_sec=0.1)
                 self.get_logger().info(f"Current altitude: {self.current_altitude}")
                 self.publish_velocity(-0.2)
