@@ -107,7 +107,6 @@ class DroneController(Node):
         # Wait until we have received the initial position before starting the mission.
         while self.initial_pose is None:
             self.get_logger().info("Waiting for initial position data...")
-            rclpy.spin_once(self, timeout_sec=0.1)
             time.sleep(0.1)
             
         if self.takeoff(1.0):
