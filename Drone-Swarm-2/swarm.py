@@ -15,7 +15,7 @@ spin_lock = threading.Lock()
 
 class DroneController(Node):
     def __init__(self, drone_ns):
-        super().__init__(f'{drone_ns}_controller')
+        super().__init__(f'{drone_ns.replace("/", "_")}_controller')
         self.drone_ns = drone_ns
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
 
