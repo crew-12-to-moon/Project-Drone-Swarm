@@ -19,12 +19,12 @@ class DroneController(Node):
         self.drone_ns = drone_ns
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
 
-        self.takeoff_client = self.create_client(CommandTOL, f'/{drone_ns}/cmd/takeoff')
-        self.disarm_client = self.create_client(CommandBool, f'/{drone_ns}/cmd/arming')
-        self.velocity_publisher = self.create_publisher(TwistStamped, f'/{drone_ns}/setpoint_velocity/cmd_vel', qos_profile)
-        self.position_publisher = self.create_publisher(PoseStamped, f'/{drone_ns}/setpoint_position/local', qos_profile)
-        self.state_subscriber = self.create_subscription(State, f'/{drone_ns}/state', self.state_callback, qos_profile)
-        self.altitude_subscriber = self.create_subscription(PoseStamped, f'/{drone_ns}/local_position/pose', self.altitude_callback, qos_profile)
+        self.takeoff_client = self.create_client(CommandTOL, f'mavros/{drone_ns}/cmd/takeoff')
+        self.disarm_client = self.create_client(CommandBool, f'mavros/{drone_ns}/cmd/arming')
+        self.velocity_publisher = self.create_publisher(TwistStamped, f'mavros/{drone_ns}/setpoint_velocity/cmd_vel', qos_profile)
+        self.position_publisher = self.create_publisher(PoseStamped, f'mavros/{drone_ns}/setpoint_position/local', qos_profile)
+        self.state_subscriber = self.create_subscription(State, f'mavros/{drone_ns}/state', self.state_callback, qos_profile)
+        self.altitude_subscriber = self.create_subscription(PoseStamped, f'mavros/{drone_ns}/local_position/pose', self.altitude_callback, qos_profile)
 
         self.current_altitude = 0.0
         self.armed = False
@@ -139,8 +139,8 @@ def main(args=None):
     rclpy.init(args=args)
 
     # Instantiate two drone controllers with different namespaces.
-    drone1 = DroneController("mavros/uas_1_1")
-    drone2 = DroneController("mavros/uas_1_2")
+    drone1 = DroneController("uas_1_1")
+    drone2 = DroneController("uas_1_2")
     drones = [drone1, drone2]
 
     # Create a MultiThreadedExecutor for ROS callbacks.
