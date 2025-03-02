@@ -139,8 +139,8 @@ def main(args=None):
     rclpy.init(args=args)
 
     # Instantiate two drone controllers with different namespaces.
-    drone1 = DroneController("drone1")
-    drone2 = DroneController("drone2")
+    drone1 = DroneController("mavros/uas_1_1")
+    drone2 = DroneController("mavros/uas_1_2")
     drones = [drone1, drone2]
 
     # Create a MultiThreadedExecutor for ROS callbacks.
