@@ -65,7 +65,7 @@ class GpsDeniedDroneController(Node):
 
     def execute_mission(self):
         self.get_logger().info("Setting OFFBOARD mode...")
-        for _ in range(10):  # Send setpoints before mode switch
+        for _ in range(20):  # Increase the number of setpoints sent before mode switch
             self.publish_setpoint()
             time.sleep(0.1)
         if self.set_mode("OFFBOARD"):
