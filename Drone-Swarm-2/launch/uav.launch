@@ -1,0 +1,11 @@
+<launch>
+    <group>
+        <arg name="id" default="0" />    
+        <arg name="i" default="1" /> <!-- change this to have different namespaces, change the SYSID_THISMAV (id+1) in mavproxy or mission planner -->
+        <arg name="fcu_url" default="udp://:14550@127.0.0.1:14555" /> <!-- "/dev/ttyAMA0:921600" -->
+        <include file="$(find-pkg-share mavros)/launch/apm.launch">
+            <arg name="tgt_system" value="$(eval '1 + int(\'$(var i)\') ')" />
+            <arg name="namespace" value="$(eval ' \'mavros/uas_\' + \'$(var i)_\' + \'$(var tgt_system)\' ')" />
+        </include>
+    </group>
+</launch>

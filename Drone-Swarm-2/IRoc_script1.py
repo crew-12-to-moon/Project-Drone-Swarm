@@ -55,12 +55,23 @@ class DroneController(Node):
             return False
 
     def land(self):
-        req = CommandTOL.Request()
-        req.altitude = 0.0
-        future = self.takeoff_client.call_async(req)
-        rclpy.spin_until_future_complete(self, future)
+        # req = CommandTOL.Request()
+        # req.altitude = 0.0
+        # future = self.takeoff_client.call_async(req)
+        # rclpy.spin_until_future_complete(self, future)
 
-        if future.result().success:
+        # if future.result().success:
+        #     self.get_logger().info("Landing successful")
+        #     return True
+        # else:
+        #     self.get_logger().info("Landing failed")
+        #     return False
+
+        req = SetMode.Request()
+        req.custom_mode = 'LAND'
+        future = self.mode_client.call_async(req)
+        rclpy.spin_until_future_complete(self, future)
+        if future.result().mode_sent:
             self.get_logger().info("Landing successful")
             return True
         else:
