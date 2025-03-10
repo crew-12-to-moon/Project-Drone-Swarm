@@ -14,7 +14,7 @@ class LeaderDrone(Node):
     def __init__(self):
         super().__init__('leader_drone')
 
-        self.declare_parameter('namespace', 'leader')
+        self.declare_parameter('namespace', '/mavros/uas_1_2')
         namespace = self.get_parameter('namespace').value
 
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
@@ -139,7 +139,7 @@ class FollowerDrone(Node):
     def __init__(self):
         super().__init__('follower_drone')
 
-        self.declare_parameter('namespace', 'follower')
+        self.declare_parameter('namespace', '/mavros/uas_1_1')
         namespace = self.get_parameter('namespace').value
 
         qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
