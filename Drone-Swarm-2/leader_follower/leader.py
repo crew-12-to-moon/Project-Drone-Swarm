@@ -15,18 +15,18 @@ class DroneController(Node):
     def __init__(self, drone_ns):
         super().__init__(f'{drone_ns}_controller')
         self.drone_ns = drone_ns
-        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=10)
+        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=100)
 
         # Create service clients, including a SetMode client for switching modes
         self.takeoff_client = self.create_client(CommandTOL, f'mavros/{drone_ns}/cmd/takeoff')
         self.disarm_client = self.create_client(CommandBool, f'mavros/{drone_ns}/cmd/arming')
         self.mode_client = self.create_client(SetMode, f'mavros/{drone_ns}/set_mode')
         
-        while not self.takeoff_client.wait_for_service(timeout_sec=2.0):
+        while not self.takeoff_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for takeoff service...')
-        while not self.disarm_client.wait_for_service(timeout_sec=2.0):
+        while not self.disarm_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for disarm service...')
-        while not self.mode_client.wait_for_service(timeout_sec=2.0):
+        while not self.mode_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for set_mode service...')
 
         self.velocity_publisher = self.create_publisher(TwistStamped, f'mavros/{drone_ns}/setpoint_velocity/cmd_vel', qos_profile)
@@ -112,7 +112,7 @@ class DroneController(Node):
 
     def execute_mission(self):
         while self.initial_pose is None:
-            rclpy.spin_once(self, timeout_sec=0.1)
+            rclpy.spin_once(self, timeout_sec=0.02)
             self.get_logger().info("Waiting for initial position data...")
         
         if self.takeoff(1.0):
@@ -121,7 +121,7 @@ class DroneController(Node):
 
             self.get_logger().info("Starting ascent to 2m above initial altitude...")
             while self.current_altitude < (self.initial_altitude + ascent_offset):
-                rclpy.spin_once(self, timeout_sec=0.1)
+                rclpy.spin_once(self, timeout_sec=0.02)
                 self.get_logger().info(f"Current altitude: {self.current_altitude}")
                 self.publish_velocity(0.2)
                 self.publish_position(ascent_offset)
@@ -129,7 +129,7 @@ class DroneController(Node):
 
             self.get_logger().info("Reached target altitude, starting descent...")
             while self.current_altitude > (self.initial_altitude + 0.2):
-                rclpy.spin_once(self, timeout_sec=0.1)
+                rclpy.spin_once(self, timeout_sec=0.02)
                 self.get_logger().info(f"Current altitude: {self.current_altitude}")
                 self.publish_velocity(-0.2)
                 self.publish_position(0.0)
