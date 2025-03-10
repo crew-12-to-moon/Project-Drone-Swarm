@@ -116,7 +116,7 @@ class DroneController(Node):
             self.get_logger().info("Waiting for initial position data...")
         
         if self.takeoff(1.0):
-            time.sleep(5)  # Wait for stabilization
+            time.sleep(3)  # Wait for stabilization
             ascent_offset = 2.0
 
             self.get_logger().info("Starting ascent to 2m above initial altitude...")
