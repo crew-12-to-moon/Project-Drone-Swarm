@@ -75,16 +75,18 @@ public:
 
   void altitude_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   {
-    std::lock_guard<std::mutex> lock(spin_mutex);
-    current_altitude_ = msg->pose.position.z;
-    RCLCPP_INFO(this->get_logger(), "Altitude callback: %.2f", current_altitude_);
-    if (!initial_pose_received_) {
-      initial_pose_ = msg->pose;
-      initial_altitude_ = msg->pose.position.z;
-      initial_pose_received_ = true;
-      RCLCPP_INFO(this->get_logger(),
-                  "Initial position captured: x=%.2f, y=%.2f, z=%.2f",
-                  initial_pose_.position.x, initial_pose_.position.y, initial_altitude_);
+    {
+      std::lock_guard<std::mutex> lock(spin_mutex);
+      current_altitude_ = msg->pose.position.z;
+      RCLCPP_INFO(this->get_logger(), "Altitude callback: %.2f", current_altitude_);
+      if (!initial_pose_received_) {
+        initial_pose_ = msg->pose;
+        initial_altitude_ = msg->pose.position.z;
+        initial_pose_received_ = true;
+        RCLCPP_INFO(this->get_logger(),
+                    "Initial position captured: x=%.2f, y=%.2f, z=%.2f",
+                    initial_pose_.position.x, initial_pose_.position.y, initial_altitude_);
+      }
     }
     cv.notify_all();
   }
@@ -94,8 +96,7 @@ public:
     auto req = std::make_shared<mavros_msgs::srv::CommandTOL::Request>();
     req->altitude = altitude;
     auto future = takeoff_client_->async_send_request(req);
-    // Wait for the future to be ready
-    future.wait();
+    future.wait(); // Block until the future is complete
     auto result = future.get();
     if (result != nullptr && result->success) {
       RCLCPP_INFO(this->get_logger(), "Takeoff successful to %.2f meters", altitude);
@@ -134,7 +135,6 @@ public:
     auto req = std::make_shared<mavros_msgs::srv::SetMode::Request>();
     req->custom_mode = mode;
     auto future = set_mode_client_->async_send_request(req);
-    // Wait for the future to be ready
     future.wait();
     auto result = future.get();
     if (result != nullptr && result->mode_sent) {
@@ -148,13 +148,13 @@ public:
 
   bool disarm()
   {
+    // First, set the mode to "STABILIZED" (or "STABILIZE" depending on your system)
     if (!set_mode("STABILIZED")) {
       return false;
     }
     auto req = std::make_shared<mavros_msgs::srv::CommandBool::Request>();
     req->value = false;  // False to disarm.
     auto future = disarm_client_->async_send_request(req);
-    // Wait for the future to be ready
     future.wait();
     auto result = future.get();
     if (result != nullptr && result->success) {
@@ -166,8 +166,11 @@ public:
     }
   }
 
-  // The execute_mission method waits for the initial pose, performs a takeoff,
-  // then ascends and descends while publishing velocity and position commands.
+  // The execute_mission method:
+  // 1. Waits for the initial position.
+  // 2. Takes off to 1 meter and then holds position for 18 sec.
+  // 3. Ascends to 2 meters and holds for 18 sec.
+  // 4. Descends and then disarms.
   std::string execute_mission()
   {
     {
@@ -178,7 +181,10 @@ public:
       }
     }
     if (takeoff(1.0)) {
-      std::this_thread::sleep_for(5s); // Wait for stabilization.
+      // Hold position at 1 meter for 18 seconds
+      RCLCPP_INFO(this->get_logger(), "Holding at 1m for 18 seconds...");
+      std::this_thread::sleep_for(18s);
+
       double ascent_offset = 2.0;
       RCLCPP_INFO(this->get_logger(), "Starting ascent to 2m...");
       {
@@ -190,7 +196,11 @@ public:
           cv.wait_for(lock, 1s);
         }
       }
-      RCLCPP_INFO(this->get_logger(), "Reached 2m, starting descent...");
+      // Hold position at 2 meters for 18 seconds
+      RCLCPP_INFO(this->get_logger(), "Holding at 2m for 18 seconds...");
+      std::this_thread::sleep_for(18s);
+
+      RCLCPP_INFO(this->get_logger(), "Starting descent...");
       {
         std::unique_lock<std::mutex> lock(spin_mutex);
         while (current_altitude_ > (initial_altitude_ + 0.2)) {
