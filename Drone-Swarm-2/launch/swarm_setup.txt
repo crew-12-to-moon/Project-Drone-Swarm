@@ -1,0 +1,39 @@
+1. Make gz_ws/src
+
+2. copy ardupilot_gazebo to it (the git repo)
+
+3. make copies of the drone model you wish to use in your simulation
+
+4. Give all the copies unique names (1, 2, 3...):
+a. model.config: <model><name>Iris 1</name></model>
+b. model.sdf: <model name="iris_1"></model>
+
+5. For each drone's sdf file, make the following changes - 
+a. Change fdm port in for each drone by 9002 + 10*i, where i is the drone number
+b. Add fdm port out as 90xx + 1, where 90xx is the fdm port in.
+
+6. Go to the worlds folder and create a new sdf file. Make it a copy of any world file you find suitable . Add the drone models you copied into the sdf file, similar to how the initial drone is added in the world file:
+<include>
+      <name>iris_with_gimbal_1</name>
+      <uri>model://iris_with_gimbal_1</uri>
+      <pose degrees="true">2 0 0.195 0 0 90</pose>
+</include>
+Note that position must be changed.
+
+7. In a ros workspace create a launch file. Refer to launch file two_drone.launch.py on github
+
+8. Export the ardupilot folders as GZ Resource Paths -
+export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/gz_ws/src/ardupilot_gazebo/build:$GZ_SIM_SYSTEM_PLUGIN_PATH
+export GZ_SIM_RESOURCE_PATH=$HOME/gz_ws/src/ardupilot_gazebo/models:$HOME/gz_ws/src/ardupilot_gazebo/worlds:$GZ_SIM_RESOURCE_PATH
+
+9. In different terminals start instances of each drone using the command:
+
+10. Launch the ros2 launch.py file. Gazebo should start. You can now control the two drones as you normally would through terminal.
+Eg. - 
+mode guided
+arm throttle
+takeoff 5
+
+
+For setting up gazebo, use the ardupilot documentation as reference - 
+https://ardupilot.org/dev/docs/sitl-with-gazebo.html
