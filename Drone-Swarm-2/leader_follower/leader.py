@@ -138,40 +138,32 @@ class DroneController(Node):
             self.get_logger().info("Starting ascent to 2m above initial altitude...")
             while self.current_altitude < (self.initial_altitude + ascent_offset):
                 rclpy.spin_once(self, timeout_sec=0.1)
-#                #self.get_logger().info(f"Current altitude: {self.current_altitude}")
-                self.publish_velocity(0.2)
-                self.publish_position(ascent_offset)
+                self.publish_position(ascent_offset)  # Only publish position
                 time.sleep(1)
 
             self.get_logger().info("Reached 2m, holding position...")
-            self.publish_velocity(0.0)
             time.sleep(4)
 
-            # Move 3 meters in the +x direction with velocity 0.3
+            # Move 3 meters in the +x direction
             self.get_logger().info("Starting movement in +x direction...")
             target_x = self.initial_x + 3.0  # Use self.initial_x as the reference
             while self.current_x < target_x:  # Use self.current_x for the condition
                 rclpy.spin_once(self, timeout_sec=0.1)
                 self.get_logger().info(f"Current x position: {self.current_x}, Target x position: {target_x}")
-                self.publish_velocity_x(0.3)
-                self.publish_position(ascent_offset, x_offset=3.0)
+                self.publish_position(ascent_offset, x_offset=3.0)  # Only publish position
                 time.sleep(1)
 
             self.get_logger().info("Reached target x position, holding position...")
-            self.publish_velocity_x(0.0)
             time.sleep(4)
 
             # Start descent
             self.get_logger().info("Starting descent...")
             while self.current_altitude > (self.initial_altitude + 0.2):
                 rclpy.spin_once(self, timeout_sec=0.1)
-                #self.get_logger().info(f"Current altitude: {self.current_altitude}")
-                self.publish_velocity(-0.2)
-                self.publish_position(altitude_offset=0.0)
+                self.publish_position(altitude_offset=0.0)  # Only publish position
                 time.sleep(0.1)
 
             # Ensure the drone has landed
-            self.publish_velocity(0.0)
             self.get_logger().info("Drone has landed. Mission complete!")
 
             # Switch to STABILIZE mode to allow disarming
